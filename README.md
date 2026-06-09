@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sistema de Gestión de Inventario para Tienda
 
 Proyecto académico de **Programación 2** desarrollado en **Java** con enfoque en **Programación Orientada a Objetos (POO)**.
@@ -79,3 +80,6 @@ Actualmente incluye:
 ## Autor
 
 Jonathan / Andre Rosero
+=======
+# Proyecto-Progra2
+>>>>>>> 26a7101e7645907605150e4926f4aa0efa8c0374
