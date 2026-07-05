@@ -56,4 +56,24 @@ public class Pedido extends Transaccion implements AfectaInventario {
             inventario.disminuirStock(detalle.getProducto(), detalle.getCantidad());
         }
     }
+
+    public String getNumeroPedido() {
+        return numeroPedido;
+    }
+
+    public void setNumeroPedido(String numeroPedido) {
+        this.numeroPedido = numeroPedido;
+    }
+
+    public Cliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
+    public List<DetallePedido> getDetalles() {
+        return detalles;
+    }
 }

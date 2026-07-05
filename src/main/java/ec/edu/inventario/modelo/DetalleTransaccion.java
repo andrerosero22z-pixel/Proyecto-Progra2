@@ -25,11 +25,39 @@ public abstract class DetalleTransaccion {
         return cantidad;
     }
 
+    public int getNumeroLinea() {
+        return numeroLinea;
+    }
+
+    public void setNumeroLinea(int numeroLinea) {
+        this.numeroLinea = numeroLinea;
+    }
+
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public double getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(double precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
     public Producto getProducto() {
         return producto;
     }
 
+    public void setProducto(Producto producto) {
+        this.producto = producto;
+    }
+
     public double getSubtotal() {
         return subtotal;
+    }
+
+    public void setSubtotal(double subtotal) {
+        this.subtotal = subtotal;
     }
 }

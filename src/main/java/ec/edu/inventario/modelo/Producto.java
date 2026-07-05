@@ -34,15 +34,36 @@ public class Producto {
         return idProducto;
     }
 
+    public void setIdProducto(int idProducto) {
+        this.idProducto = idProducto;
+    }
+
     public String getNombre() {
         return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public double getPrecioCompra() {
         return precioCompra;
     }
 
+    public void setPrecioCompra(double precioCompra) {
+        this.precioCompra = precioCompra;
+    }
+
     public double getPrecioVenta() {
         return precioVenta;
+    }
+
+    public void setPrecioVenta(double precioVenta) {
+        this.precioVenta = precioVenta;
+    }
+
+    @Override
+    public String toString() {
+        return idProducto + " - " + nombre;
     }
 }

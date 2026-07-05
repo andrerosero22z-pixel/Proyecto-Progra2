@@ -19,4 +19,12 @@ public class DetallePedido extends DetalleTransaccion {
     public double calcularSubtotal() {
         return (cantidad * precioUnitario) - descuento;
     }
+
+    public double getDescuento() {
+        return descuento;
+    }
+
+    public void setDescuento(double descuento) {
+        this.descuento = descuento;
+    }
 }

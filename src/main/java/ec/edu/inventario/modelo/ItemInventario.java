@@ -34,7 +34,31 @@ public class ItemInventario {
         return producto;
     }
 
+    public void setProducto(Producto producto) {
+        this.producto = producto;
+    }
+
+    public int getIdItemInventario() {
+        return idItemInventario;
+    }
+
+    public void setIdItemInventario(int idItemInventario) {
+        this.idItemInventario = idItemInventario;
+    }
+
     public int getStockActual() {
         return stockActual;
+    }
+
+    public void setStockActual(int stockActual) {
+        this.stockActual = stockActual;
+    }
+
+    public int getStockMinimo() {
+        return stockMinimo;
+    }
+
+    public void setStockMinimo(int stockMinimo) {
+        this.stockMinimo = stockMinimo;
     }
 }

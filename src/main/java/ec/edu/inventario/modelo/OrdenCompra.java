@@ -45,4 +45,24 @@ public class OrdenCompra extends Transaccion implements AfectaInventario {
             inventario.aumentarStock(detalle.getProducto(), detalle.getCantidad());
         }
     }
+
+    public String getNumeroOrden() {
+        return numeroOrden;
+    }
+
+    public void setNumeroOrden(String numeroOrden) {
+        this.numeroOrden = numeroOrden;
+    }
+
+    public Proveedor getProveedor() {
+        return proveedor;
+    }
+
+    public void setProveedor(Proveedor proveedor) {
+        this.proveedor = proveedor;
+    }
+
+    public List<DetalleOrdenCompra> getDetalles() {
+        return detalles;
+    }
 }

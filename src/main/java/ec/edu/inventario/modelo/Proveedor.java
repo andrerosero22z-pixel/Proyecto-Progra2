@@ -32,4 +32,26 @@ public class Proveedor extends EntidadComercial {
     public String mostrarInformacion() {
         return "Proveedor: " + nombreEmpresa + " | RUC: " + ruc;
     }
+
+    public String getRuc() {
+        return ruc;
+    }
+
+    public void setRuc(String ruc) {
+        this.ruc = ruc;
+    }
+
+    public String getNombreEmpresa() {
+        return nombreEmpresa;
+    }
+
+    public void setNombreEmpresa(String nombreEmpresa) {
+        this.nombreEmpresa = nombreEmpresa;
+        this.nombre = nombreEmpresa;
+    }
+
+    @Override
+    public String toString() {
+        return idEntidad + " - " + nombreEmpresa;
+    }
 }

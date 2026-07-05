@@ -28,6 +28,19 @@ public class Cliente extends EntidadComercial {
 
     @Override
     public String mostrarInformacion() {
-        return "Cliente: " + nombre + " | Código: " + codigoCliente;
+        return "Cliente: " + nombre + " | Codigo: " + codigoCliente;
+    }
+
+    public String getCodigoCliente() {
+        return codigoCliente;
+    }
+
+    public void setCodigoCliente(String codigoCliente) {
+        this.codigoCliente = codigoCliente;
+    }
+
+    @Override
+    public String toString() {
+        return idEntidad + " - " + nombre;
     }
 }

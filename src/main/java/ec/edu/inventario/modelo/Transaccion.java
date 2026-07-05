@@ -27,4 +27,28 @@ public abstract class Transaccion {
     public double getTotal() {
         return total;
     }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
+    public int getIdTransaccion() {
+        return idTransaccion;
+    }
+
+    public void setIdTransaccion(int idTransaccion) {
+        this.idTransaccion = idTransaccion;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        this.fecha = fecha;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
 }
