@@ -1,27 +1,51 @@
-# Dashboard de Inventario y Ventas
+# Dashboard de análisis
 
-Este dashboard es un complemento de lectura para el sistema de inventario desarrollado en Java. El sistema Java guarda la información en archivos CSV y Streamlit la presenta mediante indicadores, tablas y gráficos sencillos.
+Este dashboard complementa el sistema de inventario desarrollado en Java. Utiliza Streamlit para presentar indicadores, tablas y gráficos a partir de los archivos CSV del proyecto.
 
-## Requisitos
+## Archivos analizados
 
-1. Instalar Python.
-2. Abrir una terminal en la carpeta raíz del proyecto.
-3. Instalar las dependencias:
+El dashboard lee los siguientes archivos de la carpeta `datos`:
+
+- `clientes.csv`.
+- `proveedores.csv`.
+- `productos.csv`.
+- `inventario.csv`.
+- `pedidos.csv`.
+- `ordenesCompra.csv`.
+
+El análisis de ventas e inventario utiliza principalmente la información de productos, pedidos e inventario. Streamlit solamente lee estos archivos; no agrega, modifica ni elimina datos.
+
+## Indicadores y gráficos
+
+- Total de pedidos registrados.
+- Ingresos obtenidos.
+- Unidades vendidas.
+- Productos con stock bajo.
+- Productos más vendidos.
+- Ventas por fecha.
+- Cantidad de pedidos por estado.
+- Comparación entre el stock actual y el stock mínimo.
+
+## Instalar dependencias
+
+Desde la carpeta raíz `sistema inventario`, ejecutar:
 
 ```bash
 pip install -r dashboard/requirements.txt
 ```
 
-4. Iniciar el dashboard:
+## Ejecutar el dashboard
+
+Desde la misma carpeta raíz, ejecutar:
 
 ```bash
 streamlit run dashboard/app.py
 ```
 
-El dashboard solamente lee los archivos de la carpeta `datos`. No modifica, agrega ni elimina información de los CSV.
+Streamlit mostrará en la terminal la dirección local para abrir el dashboard en el navegador.
 
-## Contenido
+## Conceptos básicos de pandas
 
-- **Resumen:** pedidos registrados, ingresos, unidades vendidas y productos con stock bajo.
-- **Ventas:** filtros, tabla de pedidos, productos más vendidos, ventas por fecha y estados.
-- **Inventario:** estado del stock, productos que requieren reabastecimiento y comparación con el stock mínimo.
+- **pandas:** biblioteca de Python que permite leer, ordenar y analizar datos en forma de tablas.
+- **merge:** une dos tablas mediante una columna común. En este proyecto permite relacionar los IDs de productos con sus nombres.
+- **groupby:** agrupa filas que tienen un dato en común y permite calcular totales. Se utiliza para obtener las ventas por producto y por fecha.
