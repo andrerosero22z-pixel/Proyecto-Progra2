@@ -50,6 +50,7 @@ public class OrdenCompraCSV {
 
     public void guardar(ArrayList<OrdenCompra> ordenes) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
+        lineas.add("numero,idProveedor,idProducto,cantidad,precio,total,estado,fecha");
         for (int i = 0; i < ordenes.size(); i++) {
             OrdenCompra orden = ordenes.get(i);
             if (orden.getDetalles().size() > 0 && orden.getProveedor() != null) {

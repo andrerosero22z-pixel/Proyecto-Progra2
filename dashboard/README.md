@@ -15,6 +15,16 @@ El dashboard lee los siguientes archivos de la carpeta `datos`:
 
 El análisis de ventas e inventario utiliza principalmente la información de productos, pedidos e inventario. Streamlit solamente lee estos archivos; no agrega, modifica ni elimina datos.
 
+## Formato de los CSV
+
+Los archivos CSV contienen los nombres de las columnas en la primera fila y sus campos están separados por comas. Pandas puede leerlos directamente:
+
+```python
+datos = pd.read_csv(ruta)
+```
+
+No es necesario indicar el separador ni asignar manualmente los nombres de las columnas. Pandas reconoce los encabezados de forma automática.
+
 ## Indicadores y gráficos
 
 - Total de pedidos registrados.
@@ -28,7 +38,7 @@ El análisis de ventas e inventario utiliza principalmente la información de pr
 
 ## Instalar dependencias
 
-Desde la carpeta raíz `sistema inventario`, ejecutar:
+Desde la carpeta raíz `Proyecto-Progra2`, ejecutar:
 
 ```bash
 pip install -r dashboard/requirements.txt

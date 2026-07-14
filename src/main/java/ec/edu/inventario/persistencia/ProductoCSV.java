@@ -34,6 +34,7 @@ public class ProductoCSV {
 
     public void guardar(ArrayList<Producto> productos) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
+        lineas.add("id,nombre,precioCompra,precioVenta");
         for (int i = 0; i < productos.size(); i++) {
             Producto producto = productos.get(i);
             lineas.add(producto.getIdProducto() + ","

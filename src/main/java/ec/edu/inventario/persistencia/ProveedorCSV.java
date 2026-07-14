@@ -31,6 +31,7 @@ public class ProveedorCSV {
 
     public void guardar(ArrayList<Proveedor> proveedores) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
+        lineas.add("id,ruc,empresa,telefono,correo,direccion");
         for (int i = 0; i < proveedores.size(); i++) {
             Proveedor proveedor = proveedores.get(i);
             lineas.add(proveedor.getIdEntidad() + ","

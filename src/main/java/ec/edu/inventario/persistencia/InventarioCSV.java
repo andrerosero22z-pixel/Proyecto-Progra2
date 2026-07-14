@@ -39,6 +39,7 @@ public class InventarioCSV {
 
     public void guardar(ArrayList<ItemInventario> items) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
+        lineas.add("idItem,idProducto,stockActual,stockMinimo");
         for (int i = 0; i < items.size(); i++) {
             ItemInventario item = items.get(i);
             if (item.getProducto() != null) {

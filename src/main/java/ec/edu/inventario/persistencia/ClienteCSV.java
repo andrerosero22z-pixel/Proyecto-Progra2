@@ -31,6 +31,7 @@ public class ClienteCSV {
 
     public void guardar(ArrayList<Cliente> clientes) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
+        lineas.add("id,codigo,nombre,telefono,correo,direccion");
         for (int i = 0; i < clientes.size(); i++) {
             Cliente cliente = clientes.get(i);
             lineas.add(cliente.getIdEntidad() + ","

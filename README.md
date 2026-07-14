@@ -118,8 +118,8 @@ El dashboard desarrollado con Streamlit permite visualizar:
 ## Funcionamiento general
 
 1. El usuario registra información desde las ventanas desarrolladas con Java Swing.
-2. Los datos se almacenan en archivos CSV dentro de la carpeta `datos`.
-3. Cada archivo utiliza punto y coma `;` como separador.
+2. Los datos se almacenan en archivos CSV con encabezados y separados por comas dentro de la carpeta `datos`.
+3. La primera fila de cada archivo contiene los nombres de sus columnas.
 4. Cuando se registra un pedido, el sistema disminuye el stock.
 5. Cuando se registra una orden de compra, el sistema aumenta el stock.
 6. El dashboard de Streamlit lee los archivos CSV y genera estadísticas y gráficos.
@@ -175,16 +175,17 @@ Los datos del sistema se guardan en la carpeta `datos`.
 | `pedidos.csv` | Pedidos realizados por los clientes |
 | `ordenesCompra.csv` | Compras realizadas a proveedores |
 
-Los archivos utilizan el siguiente separador:
+Todos los archivos tienen encabezados en la primera fila y utilizan la coma como separador.
 
 ```text
-;
+,
 ```
 
 Ejemplo:
 
 ```text
-1;0001;Nicole Salazar;0991234567;nicole@gmail.com;Quito
+id,codigo,nombre,telefono,correo,direccion
+1,0001,Nicole Salazar,0991234567,nicole@gmail.com,Quito
 ```
 
 ---
@@ -266,8 +267,10 @@ Algunas operaciones utilizadas son:
 ### Lectura de archivos
 
 ```python
-pd.read_csv(ruta, sep=";", header=None)
+pd.read_csv(ruta)
 ```
+
+Pandas reconoce automáticamente los nombres de las columnas porque se encuentran en la primera fila de cada archivo CSV.
 
 ### Unión de información
 

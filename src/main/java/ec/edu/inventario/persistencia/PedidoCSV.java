@@ -51,6 +51,7 @@ public class PedidoCSV {
 
     public void guardar(ArrayList<Pedido> pedidos) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
+        lineas.add("numero,idCliente,idProducto,cantidad,precio,descuento,total,estado,fecha");
         for (int i = 0; i < pedidos.size(); i++) {
             Pedido pedido = pedidos.get(i);
             if (pedido.getDetalles().size() > 0 && pedido.getCliente() != null) {

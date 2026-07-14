@@ -8,51 +8,16 @@ RUTA_PROYECTO = Path(__file__).resolve().parent.parent
 RUTA_DATOS = RUTA_PROYECTO / "datos"
 
 
-def cargar_csv(nombre_archivo, columnas):
+def cargar_csv(nombre_archivo):
     ruta = RUTA_DATOS / nombre_archivo
+
     if not ruta.exists() or ruta.stat().st_size == 0:
-        return pd.DataFrame(columns=columnas)
+        return pd.DataFrame()
 
     try:
-        try:
-            datos = pd.read_csv(
-                ruta, sep=";", header=None, engine="python", on_bad_lines="skip"
-            )
-        except pd.errors.ParserError:
-            datos = pd.DataFrame()
-
-        # Los CSV actuales usan coma. Este segundo intento permite leerlos sin modificarlos.
-        if len(datos.columns) != len(columnas):
-            datos = pd.read_csv(
-                ruta, sep=",", header=None, engine="python", on_bad_lines="skip"
-            )
-
-        if len(datos.columns) != len(columnas):
-            st.warning(f"No se pudo reconocer la estructura de {nombre_archivo}.")
-            return pd.DataFrame(columns=columnas)
-
-        datos.columns = columnas
-
-        # Algunos archivos actuales tienen encabezado y otros no.
-        if not datos.empty:
-            primer_valor = str(datos.iloc[0, 0]).strip().lower()
-            encabezados = {
-                "id",
-                "id_item",
-                "id_producto",
-                "id_cliente",
-                "id_proveedor",
-                "numero",
-            }
-            if primer_valor in encabezados:
-                datos = datos.iloc[1:]
-
-        return datos.reset_index(drop=True)
-    except (pd.errors.EmptyDataError, FileNotFoundError):
-        return pd.DataFrame(columns=columnas)
-    except Exception as error:
-        st.warning(f"No se pudo leer {nombre_archivo}: {error}")
-        return pd.DataFrame(columns=columnas)
+        return pd.read_csv(ruta)
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
 
 
 st.set_page_config(
@@ -66,59 +31,23 @@ st.write(
     "Análisis de la información registrada por el sistema Java mediante archivos CSV."
 )
 
-productos = cargar_csv(
-    "productos.csv", ["id_producto", "producto", "precio_compra", "precio_venta"]
-)
-inventario = cargar_csv(
-    "inventario.csv",
-    ["id_item", "id_producto", "stock_actual", "stock_minimo"],
-)
-pedidos = cargar_csv(
-    "pedidos.csv",
-    [
-        "numero",
-        "id_cliente",
-        "id_producto",
-        "cantidad",
-        "precio",
-        "descuento",
-        "total",
-        "estado",
-        "fecha",
-    ],
-)
-clientes = cargar_csv(
-    "clientes.csv",
-    ["id_cliente", "codigo", "cliente", "telefono", "correo", "direccion"],
-)
-proveedores = cargar_csv(
-    "proveedores.csv",
-    ["id_proveedor", "ruc", "proveedor", "telefono", "correo", "direccion"],
-)
-ordenes = cargar_csv(
-    "ordenesCompra.csv",
-    [
-        "numero",
-        "id_proveedor",
-        "id_producto",
-        "cantidad",
-        "precio",
-        "total",
-        "estado",
-        "fecha",
-    ],
-)
+clientes = cargar_csv("clientes.csv")
+proveedores = cargar_csv("proveedores.csv")
+productos = cargar_csv("productos.csv")
+inventario = cargar_csv("inventario.csv")
+pedidos = cargar_csv("pedidos.csv")
+ordenes = cargar_csv("ordenesCompra.csv")
 
-for columna in ["id_producto", "precio_compra", "precio_venta"]:
+for columna in ["id", "precioCompra", "precioVenta"]:
     productos[columna] = pd.to_numeric(productos[columna], errors="coerce")
 
-for columna in ["id_item", "id_producto", "stock_actual", "stock_minimo"]:
+for columna in ["idItem", "idProducto", "stockActual", "stockMinimo"]:
     inventario[columna] = pd.to_numeric(inventario[columna], errors="coerce")
 
 for columna in [
     "numero",
-    "id_cliente",
-    "id_producto",
+    "idCliente",
+    "idProducto",
     "cantidad",
     "precio",
     "descuento",
@@ -128,23 +57,23 @@ for columna in [
 
 pedidos["fecha"] = pd.to_datetime(pedidos["fecha"], errors="coerce")
 
-productos_para_unir = productos[["id_producto", "producto"]].dropna(
-    subset=["id_producto"]
-)
-productos_para_unir = productos_para_unir.drop_duplicates(subset=["id_producto"])
+productos_para_unir = productos[["id", "nombre"]].dropna(subset=["id"])
+productos_para_unir = productos_para_unir.drop_duplicates(subset=["id"])
 
-ventas = pedidos.merge(productos_para_unir, on="id_producto", how="left")
-ventas["producto"] = ventas["producto"].fillna("Producto sin nombre")
+ventas = pedidos.merge(
+    productos_para_unir, left_on="idProducto", right_on="id", how="left"
+)
+ventas["nombre"] = ventas["nombre"].fillna("Producto sin nombre")
 
 inventario_productos = inventario.merge(
-    productos_para_unir, on="id_producto", how="left"
+    productos_para_unir, left_on="idProducto", right_on="id", how="left"
 )
-inventario_productos["producto"] = inventario_productos["producto"].fillna(
+inventario_productos["nombre"] = inventario_productos["nombre"].fillna(
     "Producto sin nombre"
 )
 
 opciones_productos = sorted(
-    productos["producto"].dropna().astype(str).unique().tolist()
+    productos["nombre"].dropna().astype(str).unique().tolist()
 )
 producto_elegido = st.sidebar.selectbox(
     "Producto", ["Todos"] + opciones_productos
@@ -163,10 +92,10 @@ with pestana_resumen:
     pedidos_validos = pedidos.dropna(subset=["numero"])
     ingresos = pedidos["total"].dropna().sum()
     unidades = pedidos["cantidad"].dropna().sum()
-    inventario_valido = inventario.dropna(subset=["stock_actual", "stock_minimo"])
+    inventario_valido = inventario.dropna(subset=["stockActual", "stockMinimo"])
     cantidad_stock_bajo = len(
         inventario_valido[
-            inventario_valido["stock_actual"] <= inventario_valido["stock_minimo"]
+            inventario_valido["stockActual"] <= inventario_valido["stockMinimo"]
         ]
     )
 
@@ -184,7 +113,7 @@ with pestana_ventas:
 
         if producto_elegido != "Todos":
             ventas_filtradas = ventas_filtradas[
-                ventas_filtradas["producto"] == producto_elegido
+                ventas_filtradas["nombre"] == producto_elegido
             ]
         if estado_elegido != "Todos":
             ventas_filtradas = ventas_filtradas[
@@ -213,7 +142,7 @@ with pestana_ventas:
             tabla_ventas = ventas_filtradas[
                 [
                     "numero",
-                    "producto",
+                    "nombre",
                     "cantidad",
                     "precio",
                     "descuento",
@@ -229,7 +158,7 @@ with pestana_ventas:
                 st.subheader("10 productos más vendidos")
                 productos_vendidos = (
                     ventas_filtradas.dropna(subset=["cantidad"])
-                    .groupby("producto")["cantidad"]
+                    .groupby("nombre")["cantidad"]
                     .sum()
                     .sort_values(ascending=False)
                     .head(10)
@@ -252,12 +181,12 @@ with pestana_ventas:
 
 with pestana_inventario:
     inventario_filtrado = inventario_productos.dropna(
-        subset=["stock_actual", "stock_minimo"]
+        subset=["stockActual", "stockMinimo"]
     ).copy()
 
     if producto_elegido != "Todos":
         inventario_filtrado = inventario_filtrado[
-            inventario_filtrado["producto"] == producto_elegido
+            inventario_filtrado["nombre"] == producto_elegido
         ]
 
     if inventario_filtrado.empty:
@@ -265,19 +194,19 @@ with pestana_inventario:
     else:
         inventario_filtrado["estado"] = "Stock suficiente"
         condicion_stock_bajo = (
-            inventario_filtrado["stock_actual"]
-            <= inventario_filtrado["stock_minimo"]
+            inventario_filtrado["stockActual"]
+            <= inventario_filtrado["stockMinimo"]
         )
         inventario_filtrado.loc[condicion_stock_bajo, "estado"] = "Stock bajo"
         inventario_filtrado["faltante_para_minimo"] = (
-            inventario_filtrado["stock_minimo"]
-            - inventario_filtrado["stock_actual"]
+            inventario_filtrado["stockMinimo"]
+            - inventario_filtrado["stockActual"]
         ).clip(lower=0)
 
         st.subheader("Estado general del inventario")
         st.dataframe(
             inventario_filtrado[
-                ["producto", "stock_actual", "stock_minimo", "estado"]
+                ["nombre", "stockActual", "stockMinimo", "estado"]
             ],
             width="stretch",
             hide_index=True,
@@ -289,9 +218,9 @@ with pestana_inventario:
             st.dataframe(
                 productos_stock_bajo[
                     [
-                        "producto",
-                        "stock_actual",
-                        "stock_minimo",
+                        "nombre",
+                        "stockActual",
+                        "stockMinimo",
                         "faltante_para_minimo",
                     ]
                 ],
@@ -300,8 +229,8 @@ with pestana_inventario:
             )
 
         st.subheader("Stock actual y stock mínimo")
-        comparacion_stock = inventario_filtrado.set_index("producto")[[
-            "stock_actual",
-            "stock_minimo",
+        comparacion_stock = inventario_filtrado.set_index("nombre")[[
+            "stockActual",
+            "stockMinimo",
         ]]
         st.bar_chart(comparacion_stock)
