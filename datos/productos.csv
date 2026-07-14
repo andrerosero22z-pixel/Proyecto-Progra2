@@ -1,0 +1,81 @@
+﻿id,nombre,precioCompra,precioVenta
+1,Pan enrollado,0.18,0.3
+2,Pan de agua,0.15,0.25
+3,Pan integral,0.28,0.45
+4,Croissant,0.55,0.85
+5,Empanada de queso,0.6,1.0
+6,Empanada de pollo,0.75,1.25
+7,Donut chocolate,0.48,0.8
+8,Donut glaseada,0.45,0.75
+9,Muffin vainilla,0.65,1.1
+10,Muffin chocolate,0.7,1.2
+11,Torta chocolate,8.5,14.0
+12,Torta vainilla,7.8,13.0
+13,Torta tres leches,10.5,17.5
+14,Leche entera 1L,0.9,1.2
+15,Leche descremada 1L,1.0,1.35
+16,Huevos docena,2.2,3.0
+17,Queso fresco 500g,2.8,3.8
+18,Yogur natural,0.65,0.95
+19,Cafe molido 250g,2.7,3.9
+20,Chocolate en polvo,1.8,2.7
+21,Harina 1kg,0.85,1.2
+22,Azucar 1kg,0.9,1.25
+23,Sal 1kg,0.45,0.7
+24,Mantequilla 250g,1.45,2.0
+25,Margarina 250g,0.95,1.4
+26,Aceite vegetal 1L,1.9,2.5
+27,Levadura 100g,0.75,1.1
+28,Canela molida,0.8,1.2
+29,Esencia de vainilla,1.0,1.5
+30,Cocoa 250g,2.0,3.0
+31,Galletas de vainilla,0.55,0.9
+32,Galletas de chocolate,0.6,1.0
+33,Bizcocho,0.45,0.75
+34,Rosquilla,0.3,0.5
+35,Pan de yuca,0.35,0.6
+36,Pan de queso,0.4,0.7
+37,Sanduche mixto,1.1,1.8
+38,Sanduche de pollo,1.3,2.1
+39,Hamburguesa,1.8,3.0
+40,Hot dog,1.2,2.0
+41,Agua 500ml,0.25,0.5
+42,Gaseosa 500ml,0.55,0.9
+43,Jugo naranja,0.6,1.0
+44,Jugo mora,0.65,1.1
+45,Te helado,0.55,0.95
+46,Cafe americano,0.35,0.9
+47,Cafe con leche,0.55,1.2
+48,Capuccino,0.8,1.6
+49,Chocolate caliente,0.7,1.4
+50,Mocaccino,0.9,1.8
+51,Ensalada de frutas,1.3,2.2
+52,Gelatina,0.3,0.6
+53,Flan,0.55,1.0
+54,Cheesecake porcion,1.5,2.5
+55,Brownie,0.7,1.2
+56,Alfajor,0.5,0.9
+57,Suspiro,0.25,0.5
+58,Moncaiba,0.4,0.7
+59,Tostada,0.2,0.4
+60,Pan ajo,0.35,0.65
+61,Pan pizza,0.65,1.1
+62,Pizza personal,1.8,3.2
+63,Pastel de carne,0.85,1.4
+64,Pastel de pollo,0.9,1.5
+65,Humita,0.65,1.1
+66,Quimbolito,0.6,1.0
+67,Tamale,0.95,1.6
+68,Miel 250g,1.9,2.8
+69,Mermelada mora,1.3,2.0
+70,Mermelada frutilla,1.35,2.1
+71,Manjar 250g,1.5,2.3
+72,Crema pastelera,1.2,1.9
+73,Chispas chocolate,1.45,2.2
+74,Coco rallado,0.9,1.5
+75,Pasas 250g,1.2,1.8
+76,Nueces 250g,2.8,4.2
+77,Almendras 250g,3.2,4.8
+78,Fresas bandeja,1.5,2.3
+79,Mora bandeja,1.3,2.0
+80,Banano unidad,0.12,0.25
