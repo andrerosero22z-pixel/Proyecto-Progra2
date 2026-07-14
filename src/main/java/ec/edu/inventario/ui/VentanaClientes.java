@@ -24,7 +24,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class VentanaClientes extends JFrame {
 
-    private JTextField txtId;
+    private Integer idClienteSeleccionado = null;
     private JTextField txtCodigo;
     private JTextField txtNombre;
     private JTextField txtTelefono;
@@ -47,16 +47,13 @@ public class VentanaClientes extends JFrame {
     }
 
     private void iniciarComponentes() {
-        txtId = new JTextField();
         txtCodigo = new JTextField();
         txtNombre = new JTextField();
         txtTelefono = new JTextField();
         txtCorreo = new JTextField();
         txtDireccion = new JTextField();
 
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 5, 5));
-        panelFormulario.add(new JLabel("ID:"));
-        panelFormulario.add(txtId);
+        JPanel panelFormulario = new JPanel(new GridLayout(5, 2, 5, 5));
         panelFormulario.add(new JLabel("Codigo:"));
         panelFormulario.add(txtCodigo);
         panelFormulario.add(new JLabel("Nombre:"));
@@ -158,12 +155,13 @@ public class VentanaClientes extends JFrame {
     }
 
     private void agregarCliente() {
-        if (!validarCampos()) {
+        if (!validarCampos(-1)) {
             return;
         }
 
         try {
-            Cliente cliente = crearClienteDesdeCampos();
+            int id = clienteCSV.generarId();
+            Cliente cliente = crearClienteDesdeCampos(id);
             clienteCSV.agregar(cliente);
             JOptionPane.showMessageDialog(this, "Cliente agregado correctamente.");
             cargarTabla();
@@ -180,12 +178,16 @@ public class VentanaClientes extends JFrame {
     }
 
     private void editarCliente() {
-        if (!validarCampos()) {
+        if (idClienteSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente para editar.");
+            return;
+        }
+        if (!validarCampos(idClienteSeleccionado)) {
             return;
         }
 
         try {
-            Cliente cliente = crearClienteDesdeCampos();
+            Cliente cliente = crearClienteDesdeCampos(idClienteSeleccionado);
             clienteCSV.editar(cliente);
             JOptionPane.showMessageDialog(this, "Cliente editado correctamente.");
             cargarTabla();
@@ -202,8 +204,8 @@ public class VentanaClientes extends JFrame {
     }
 
     private void eliminarCliente() {
-        if (Validaciones.estaVacio(txtId.getText()) || !Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para eliminar.");
+        if (idClienteSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente para eliminar.");
             return;
         }
 
@@ -213,8 +215,7 @@ public class VentanaClientes extends JFrame {
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
-            clienteCSV.eliminar(id);
+            clienteCSV.eliminar(idClienteSeleccionado);
             JOptionPane.showMessageDialog(this, "Cliente eliminado correctamente.");
             cargarTabla();
             limpiarCampos();
@@ -230,13 +231,17 @@ public class VentanaClientes extends JFrame {
     }
 
     private void buscarCliente() {
-        if (Validaciones.estaVacio(txtId.getText()) || !Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para buscar.");
+        String textoId = JOptionPane.showInputDialog(this, "Ingrese el ID del cliente:");
+        if (textoId == null) {
+            return;
+        }
+        if (!Validaciones.esEnteroPositivo(textoId)) {
+            JOptionPane.showMessageDialog(this, "El ID debe ser un entero mayor que cero.");
             return;
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
+            int id = Integer.parseInt(textoId.trim());
             Cliente cliente = clienteCSV.buscarPorId(id);
             if (cliente == null) {
                 JOptionPane.showMessageDialog(this, "No se encontro el cliente.");
@@ -254,8 +259,7 @@ public class VentanaClientes extends JFrame {
         }
     }
 
-    private Cliente crearClienteDesdeCampos() {
-        int id = Integer.parseInt(txtId.getText().trim());
+    private Cliente crearClienteDesdeCampos(int id) {
         return new Cliente(
                 id,
                 txtCodigo.getText().trim(),
@@ -265,18 +269,47 @@ public class VentanaClientes extends JFrame {
                 txtDireccion.getText().trim());
     }
 
-    private boolean validarCampos() {
-        if (Validaciones.estaVacio(txtId.getText())
-                || Validaciones.estaVacio(txtCodigo.getText())
-                || Validaciones.estaVacio(txtNombre.getText())
-                || Validaciones.estaVacio(txtTelefono.getText())
-                || Validaciones.estaVacio(txtCorreo.getText())
-                || Validaciones.estaVacio(txtDireccion.getText())) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.");
+    private boolean validarCampos(int idExcluir) {
+        if (Validaciones.estaVacio(txtCodigo.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el codigo del cliente.");
             return false;
         }
-        if (!Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "El ID debe ser numerico.");
+        if (Validaciones.estaVacio(txtNombre.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre del cliente.");
+            return false;
+        }
+        if (!Validaciones.esTextoValido(txtNombre.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un nombre valido.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtTelefono.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el telefono.");
+            return false;
+        }
+        if (!Validaciones.esTelefonoValido(txtTelefono.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un telefono valido de 9 o 10 digitos.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtCorreo.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el correo.");
+            return false;
+        }
+        if (!Validaciones.esCorreoValido(txtCorreo.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un correo valido.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtDireccion.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese la direccion.");
+            return false;
+        }
+
+        try {
+            if (clienteCSV.existeCodigo(txtCodigo.getText(), idExcluir)) {
+                JOptionPane.showMessageDialog(this, "Ya existe un cliente con ese codigo.");
+                return false;
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo validar el codigo del cliente.");
             return false;
         }
         return true;
@@ -285,7 +318,7 @@ public class VentanaClientes extends JFrame {
     private void seleccionarFila() {
         int fila = tabla.getSelectedRow();
         if (fila >= 0) {
-            txtId.setText(modeloTabla.getValueAt(fila, 0).toString());
+            idClienteSeleccionado = Integer.parseInt(modeloTabla.getValueAt(fila, 0).toString());
             txtCodigo.setText(modeloTabla.getValueAt(fila, 1).toString());
             txtNombre.setText(modeloTabla.getValueAt(fila, 2).toString());
             txtTelefono.setText(modeloTabla.getValueAt(fila, 3).toString());
@@ -295,7 +328,7 @@ public class VentanaClientes extends JFrame {
     }
 
     private void mostrarCliente(Cliente cliente) {
-        txtId.setText(String.valueOf(cliente.getIdEntidad()));
+        idClienteSeleccionado = cliente.getIdEntidad();
         txtCodigo.setText(cliente.getCodigoCliente());
         txtNombre.setText(cliente.getNombre());
         txtTelefono.setText(cliente.getTelefono());
@@ -304,12 +337,12 @@ public class VentanaClientes extends JFrame {
     }
 
     private void limpiarCampos() {
-        txtId.setText("");
         txtCodigo.setText("");
         txtNombre.setText("");
         txtTelefono.setText("");
         txtCorreo.setText("");
         txtDireccion.setText("");
         tabla.clearSelection();
+        idClienteSeleccionado = null;
     }
 }

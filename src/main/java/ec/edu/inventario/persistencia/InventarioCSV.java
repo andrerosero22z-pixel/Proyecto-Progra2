@@ -1,11 +1,12 @@
 package ec.edu.inventario.persistencia;
 
-import ec.edu.inventario.modelo.ItemInventario;
-import ec.edu.inventario.modelo.Producto;
-import ec.edu.inventario.util.ArchivoUtil;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import ec.edu.inventario.modelo.ItemInventario;
+import ec.edu.inventario.modelo.Producto;
+import ec.edu.inventario.util.ArchivoUtil;
 
 public class InventarioCSV {
 
@@ -41,9 +42,9 @@ public class InventarioCSV {
         for (int i = 0; i < items.size(); i++) {
             ItemInventario item = items.get(i);
             if (item.getProducto() != null) {
-                lineas.add(item.getIdItemInventario() + ";"
-                        + item.getProducto().getIdProducto() + ";"
-                        + item.getStockActual() + ";"
+                lineas.add(item.getIdItemInventario() + ","
+                        + item.getProducto().getIdProducto() + ","
+                        + item.getStockActual() + ","
                         + item.getStockMinimo());
             }
         }

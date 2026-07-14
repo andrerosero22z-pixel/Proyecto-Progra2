@@ -1,10 +1,5 @@
 package ec.edu.inventario.ui;
 
-import ec.edu.inventario.modelo.ItemInventario;
-import ec.edu.inventario.modelo.Producto;
-import ec.edu.inventario.persistencia.InventarioCSV;
-import ec.edu.inventario.persistencia.ProductoCSV;
-import ec.edu.inventario.util.Validaciones;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -12,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -25,9 +21,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import ec.edu.inventario.modelo.ItemInventario;
+import ec.edu.inventario.modelo.Producto;
+import ec.edu.inventario.persistencia.InventarioCSV;
+import ec.edu.inventario.persistencia.ProductoCSV;
+import ec.edu.inventario.util.Validaciones;
+
 public class VentanaInventario extends JFrame {
 
-    private JTextField txtIdItem;
+    private Integer idItemSeleccionado = null;
     private JComboBox<Producto> cmbProducto;
     private JTextField txtStockActual;
     private JTextField txtStockMinimo;
@@ -53,14 +55,11 @@ public class VentanaInventario extends JFrame {
     }
 
     private void iniciarComponentes() {
-        txtIdItem = new JTextField();
         cmbProducto = new JComboBox<>();
         txtStockActual = new JTextField();
         txtStockMinimo = new JTextField();
 
-        JPanel panelFormulario = new JPanel(new GridLayout(4, 2, 5, 5));
-        panelFormulario.add(new JLabel("ID item:"));
-        panelFormulario.add(txtIdItem);
+        JPanel panelFormulario = new JPanel(new GridLayout(3, 2, 5, 5));
         panelFormulario.add(new JLabel("Producto:"));
         panelFormulario.add(cmbProducto);
         panelFormulario.add(new JLabel("Stock actual:"));
@@ -84,18 +83,18 @@ public class VentanaInventario extends JFrame {
             }
         });
 
-        JButton btnAgregar = new JButton("Agregar");
+        // JButton btnAgregar = new JButton("Agregar");
         JButton btnEditar = new JButton("Editar");
         JButton btnEliminar = new JButton("Eliminar");
         JButton btnBuscar = new JButton("Buscar");
         JButton btnLimpiar = new JButton("Limpiar");
 
-        btnAgregar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                agregarItem();
-            }
-        });
+        // // btnAgregar.addActionListener(new ActionListener() {
+        //     @Override
+        //     public void actionPerformed(ActionEvent e) {
+        //         agregarItem();
+        //     }
+        // });
         btnEditar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -122,7 +121,7 @@ public class VentanaInventario extends JFrame {
         });
 
         JPanel panelBotones = new JPanel(new GridLayout(1, 5, 5, 5));
-        panelBotones.add(btnAgregar);
+        // panelBotones.add(btnAgregar);
         panelBotones.add(btnEditar);
         panelBotones.add(btnEliminar);
         panelBotones.add(btnBuscar);
@@ -180,7 +179,8 @@ public class VentanaInventario extends JFrame {
         }
 
         try {
-            ItemInventario item = crearItemDesdeCampos();
+            int id = inventarioCSV.generarId(productos);
+            ItemInventario item = crearItemDesdeCampos(id);
             inventarioCSV.agregar(item, productos);
             JOptionPane.showMessageDialog(this, "Item agregado correctamente.");
             cargarProductos();
@@ -198,12 +198,16 @@ public class VentanaInventario extends JFrame {
     }
 
     private void editarItem() {
+        if (idItemSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un ítem de inventario para editar.");
+            return;
+        }
         if (!validarCampos()) {
             return;
         }
 
         try {
-            ItemInventario item = crearItemDesdeCampos();
+            ItemInventario item = crearItemDesdeCampos(idItemSeleccionado);
             inventarioCSV.editar(item, productos);
             JOptionPane.showMessageDialog(this, "Item editado correctamente.");
             cargarProductos();
@@ -221,8 +225,8 @@ public class VentanaInventario extends JFrame {
     }
 
     private void eliminarItem() {
-        if (Validaciones.estaVacio(txtIdItem.getText()) || !Validaciones.esEntero(txtIdItem.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para eliminar.");
+        if (idItemSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un ítem de inventario para eliminar.");
             return;
         }
 
@@ -232,8 +236,7 @@ public class VentanaInventario extends JFrame {
         }
 
         try {
-            int id = Integer.parseInt(txtIdItem.getText().trim());
-            inventarioCSV.eliminar(id, productos);
+            inventarioCSV.eliminar(idItemSeleccionado, productos);
             JOptionPane.showMessageDialog(this, "Item eliminado correctamente.");
             cargarProductos();
             cargarTabla();
@@ -250,13 +253,17 @@ public class VentanaInventario extends JFrame {
     }
 
     private void buscarItem() {
-        if (Validaciones.estaVacio(txtIdItem.getText()) || !Validaciones.esEntero(txtIdItem.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para buscar.");
+        String textoId = JOptionPane.showInputDialog(this, "Ingrese el ID del item de inventario:");
+        if (textoId == null) {
+            return;
+        }
+        if (!Validaciones.esEnteroPositivo(textoId)) {
+            JOptionPane.showMessageDialog(this, "El ID debe ser un entero mayor que cero.");
             return;
         }
 
         try {
-            int id = Integer.parseInt(txtIdItem.getText().trim());
+            int id = Integer.parseInt(textoId.trim());
             ItemInventario item = inventarioCSV.buscarPorId(id, productos);
             if (item == null) {
                 JOptionPane.showMessageDialog(this, "No se encontro el item.");
@@ -274,8 +281,7 @@ public class VentanaInventario extends JFrame {
         }
     }
 
-    private ItemInventario crearItemDesdeCampos() {
-        int id = Integer.parseInt(txtIdItem.getText().trim());
+    private ItemInventario crearItemDesdeCampos(int id) {
         int stockActual = Integer.parseInt(txtStockActual.getText().trim());
         int stockMinimo = Integer.parseInt(txtStockMinimo.getText().trim());
         Producto producto = (Producto) cmbProducto.getSelectedItem();
@@ -287,22 +293,20 @@ public class VentanaInventario extends JFrame {
             JOptionPane.showMessageDialog(this, "Debe seleccionar un producto.");
             return false;
         }
-        if (Validaciones.estaVacio(txtIdItem.getText())
-                || Validaciones.estaVacio(txtStockActual.getText())
-                || Validaciones.estaVacio(txtStockMinimo.getText())) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.");
-            return false;
-        }
-        if (!Validaciones.esEntero(txtIdItem.getText())) {
-            JOptionPane.showMessageDialog(this, "El ID debe ser numerico.");
+        if (Validaciones.estaVacio(txtStockActual.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el stock actual.");
             return false;
         }
         if (!Validaciones.esEnteroNoNegativo(txtStockActual.getText())) {
-            JOptionPane.showMessageDialog(this, "El stock actual no puede ser negativo.");
+            JOptionPane.showMessageDialog(this, "El stock actual debe ser un entero no negativo.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtStockMinimo.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el stock minimo.");
             return false;
         }
         if (!Validaciones.esEnteroNoNegativo(txtStockMinimo.getText())) {
-            JOptionPane.showMessageDialog(this, "El stock minimo no puede ser negativo.");
+            JOptionPane.showMessageDialog(this, "El stock minimo debe ser un entero no negativo.");
             return false;
         }
         return true;
@@ -311,7 +315,7 @@ public class VentanaInventario extends JFrame {
     private void seleccionarFila() {
         int fila = tabla.getSelectedRow();
         if (fila >= 0) {
-            txtIdItem.setText(modeloTabla.getValueAt(fila, 0).toString());
+            idItemSeleccionado = Integer.parseInt(modeloTabla.getValueAt(fila, 0).toString());
             seleccionarProductoPorId(Integer.parseInt(modeloTabla.getValueAt(fila, 1).toString()));
             txtStockActual.setText(modeloTabla.getValueAt(fila, 3).toString());
             txtStockMinimo.setText(modeloTabla.getValueAt(fila, 4).toString());
@@ -329,19 +333,19 @@ public class VentanaInventario extends JFrame {
     }
 
     private void mostrarItem(ItemInventario item) {
-        txtIdItem.setText(String.valueOf(item.getIdItemInventario()));
+        idItemSeleccionado = item.getIdItemInventario();
         seleccionarProductoPorId(item.getProducto().getIdProducto());
         txtStockActual.setText(String.valueOf(item.getStockActual()));
         txtStockMinimo.setText(String.valueOf(item.getStockMinimo()));
     }
 
     private void limpiarCampos() {
-        txtIdItem.setText("");
         txtStockActual.setText("");
         txtStockMinimo.setText("");
         if (cmbProducto.getItemCount() > 0) {
             cmbProducto.setSelectedIndex(0);
         }
         tabla.clearSelection();
+        idItemSeleccionado = null;
     }
 }

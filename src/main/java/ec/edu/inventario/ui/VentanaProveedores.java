@@ -24,7 +24,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class VentanaProveedores extends JFrame {
 
-    private JTextField txtId;
+    private Integer idProveedorSeleccionado = null;
     private JTextField txtRuc;
     private JTextField txtNombreEmpresa;
     private JTextField txtTelefono;
@@ -47,16 +47,13 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void iniciarComponentes() {
-        txtId = new JTextField();
         txtRuc = new JTextField();
         txtNombreEmpresa = new JTextField();
         txtTelefono = new JTextField();
         txtCorreo = new JTextField();
         txtDireccion = new JTextField();
 
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 5, 5));
-        panelFormulario.add(new JLabel("ID:"));
-        panelFormulario.add(txtId);
+        JPanel panelFormulario = new JPanel(new GridLayout(5, 2, 5, 5));
         panelFormulario.add(new JLabel("RUC:"));
         panelFormulario.add(txtRuc);
         panelFormulario.add(new JLabel("Empresa:"));
@@ -158,12 +155,13 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void agregarProveedor() {
-        if (!validarCampos()) {
+        if (!validarCampos(-1)) {
             return;
         }
 
         try {
-            Proveedor proveedor = crearProveedorDesdeCampos();
+            int id = proveedorCSV.generarId();
+            Proveedor proveedor = crearProveedorDesdeCampos(id);
             proveedorCSV.agregar(proveedor);
             JOptionPane.showMessageDialog(this, "Proveedor agregado correctamente.");
             cargarTabla();
@@ -180,12 +178,16 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void editarProveedor() {
-        if (!validarCampos()) {
+        if (idProveedorSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un proveedor para editar.");
+            return;
+        }
+        if (!validarCampos(idProveedorSeleccionado)) {
             return;
         }
 
         try {
-            Proveedor proveedor = crearProveedorDesdeCampos();
+            Proveedor proveedor = crearProveedorDesdeCampos(idProveedorSeleccionado);
             proveedorCSV.editar(proveedor);
             JOptionPane.showMessageDialog(this, "Proveedor editado correctamente.");
             cargarTabla();
@@ -202,8 +204,8 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void eliminarProveedor() {
-        if (Validaciones.estaVacio(txtId.getText()) || !Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para eliminar.");
+        if (idProveedorSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un proveedor para eliminar.");
             return;
         }
 
@@ -213,8 +215,7 @@ public class VentanaProveedores extends JFrame {
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
-            proveedorCSV.eliminar(id);
+            proveedorCSV.eliminar(idProveedorSeleccionado);
             JOptionPane.showMessageDialog(this, "Proveedor eliminado correctamente.");
             cargarTabla();
             limpiarCampos();
@@ -230,13 +231,17 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void buscarProveedor() {
-        if (Validaciones.estaVacio(txtId.getText()) || !Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para buscar.");
+        String textoId = JOptionPane.showInputDialog(this, "Ingrese el ID del proveedor:");
+        if (textoId == null) {
+            return;
+        }
+        if (!Validaciones.esEnteroPositivo(textoId)) {
+            JOptionPane.showMessageDialog(this, "El ID debe ser un entero mayor que cero.");
             return;
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
+            int id = Integer.parseInt(textoId.trim());
             Proveedor proveedor = proveedorCSV.buscarPorId(id);
             if (proveedor == null) {
                 JOptionPane.showMessageDialog(this, "No se encontro el proveedor.");
@@ -254,8 +259,7 @@ public class VentanaProveedores extends JFrame {
         }
     }
 
-    private Proveedor crearProveedorDesdeCampos() {
-        int id = Integer.parseInt(txtId.getText().trim());
+    private Proveedor crearProveedorDesdeCampos(int id) {
         return new Proveedor(
                 id,
                 txtRuc.getText().trim(),
@@ -265,18 +269,51 @@ public class VentanaProveedores extends JFrame {
                 txtDireccion.getText().trim());
     }
 
-    private boolean validarCampos() {
-        if (Validaciones.estaVacio(txtId.getText())
-                || Validaciones.estaVacio(txtRuc.getText())
-                || Validaciones.estaVacio(txtNombreEmpresa.getText())
-                || Validaciones.estaVacio(txtTelefono.getText())
-                || Validaciones.estaVacio(txtCorreo.getText())
-                || Validaciones.estaVacio(txtDireccion.getText())) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.");
+    private boolean validarCampos(int idExcluir) {
+        if (Validaciones.estaVacio(txtRuc.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el RUC.");
             return false;
         }
-        if (!Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "El ID debe ser numerico.");
+        if (!Validaciones.esRucValido(txtRuc.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un RUC valido de 13 digitos.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtNombreEmpresa.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre de la empresa.");
+            return false;
+        }
+        if (!Validaciones.esTextoValido(txtNombreEmpresa.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un nombre de empresa valido.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtTelefono.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el telefono.");
+            return false;
+        }
+        if (!Validaciones.esTelefonoValido(txtTelefono.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un telefono valido de 9 o 10 digitos.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtCorreo.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el correo.");
+            return false;
+        }
+        if (!Validaciones.esCorreoValido(txtCorreo.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un correo valido.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtDireccion.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese la direccion.");
+            return false;
+        }
+
+        try {
+            if (proveedorCSV.existeRuc(txtRuc.getText(), idExcluir)) {
+                JOptionPane.showMessageDialog(this, "Ya existe un proveedor con ese RUC.");
+                return false;
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo validar el RUC del proveedor.");
             return false;
         }
         return true;
@@ -285,7 +322,7 @@ public class VentanaProveedores extends JFrame {
     private void seleccionarFila() {
         int fila = tabla.getSelectedRow();
         if (fila >= 0) {
-            txtId.setText(modeloTabla.getValueAt(fila, 0).toString());
+            idProveedorSeleccionado = Integer.parseInt(modeloTabla.getValueAt(fila, 0).toString());
             txtRuc.setText(modeloTabla.getValueAt(fila, 1).toString());
             txtNombreEmpresa.setText(modeloTabla.getValueAt(fila, 2).toString());
             txtTelefono.setText(modeloTabla.getValueAt(fila, 3).toString());
@@ -295,7 +332,7 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void mostrarProveedor(Proveedor proveedor) {
-        txtId.setText(String.valueOf(proveedor.getIdEntidad()));
+        idProveedorSeleccionado = proveedor.getIdEntidad();
         txtRuc.setText(proveedor.getRuc());
         txtNombreEmpresa.setText(proveedor.getNombreEmpresa());
         txtTelefono.setText(proveedor.getTelefono());
@@ -304,12 +341,12 @@ public class VentanaProveedores extends JFrame {
     }
 
     private void limpiarCampos() {
-        txtId.setText("");
         txtRuc.setText("");
         txtNombreEmpresa.setText("");
         txtTelefono.setText("");
         txtCorreo.setText("");
         txtDireccion.setText("");
         tabla.clearSelection();
+        idProveedorSeleccionado = null;
     }
 }

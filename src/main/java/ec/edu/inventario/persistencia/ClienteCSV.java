@@ -1,10 +1,11 @@
 package ec.edu.inventario.persistencia;
 
-import ec.edu.inventario.modelo.Cliente;
-import ec.edu.inventario.util.ArchivoUtil;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import ec.edu.inventario.modelo.Cliente;
+import ec.edu.inventario.util.ArchivoUtil;
 
 public class ClienteCSV {
 
@@ -32,11 +33,11 @@ public class ClienteCSV {
         ArrayList<String> lineas = new ArrayList<>();
         for (int i = 0; i < clientes.size(); i++) {
             Cliente cliente = clientes.get(i);
-            lineas.add(cliente.getIdEntidad() + ";"
-                    + ArchivoUtil.limpiarTexto(cliente.getCodigoCliente()) + ";"
-                    + ArchivoUtil.limpiarTexto(cliente.getNombre()) + ";"
-                    + ArchivoUtil.limpiarTexto(cliente.getTelefono()) + ";"
-                    + ArchivoUtil.limpiarTexto(cliente.getCorreo()) + ";"
+            lineas.add(cliente.getIdEntidad() + ","
+                    + ArchivoUtil.limpiarTexto(cliente.getCodigoCliente()) + ","
+                    + ArchivoUtil.limpiarTexto(cliente.getNombre()) + ","
+                    + ArchivoUtil.limpiarTexto(cliente.getTelefono()) + ","
+                    + ArchivoUtil.limpiarTexto(cliente.getCorreo()) + ","
                     + ArchivoUtil.limpiarTexto(cliente.getDireccion()));
         }
         ArchivoUtil.escribirLineas(ARCHIVO, lineas);
@@ -55,6 +56,32 @@ public class ClienteCSV {
 
     public boolean existeId(int idCliente) throws FileNotFoundException, IOException {
         return buscarPorId(idCliente) != null;
+    }
+
+    public int generarId() throws FileNotFoundException, IOException {
+        ArrayList<Cliente> clientes = listar();
+        int mayor = 0;
+
+        for (int i = 0; i < clientes.size(); i++) {
+            if (clientes.get(i).getIdEntidad() > mayor) {
+                mayor = clientes.get(i).getIdEntidad();
+            }
+        }
+        return mayor + 1;
+    }
+
+    public boolean existeCodigo(String codigo, int idExcluir) throws FileNotFoundException, IOException {
+        ArrayList<Cliente> clientes = listar();
+        String codigoBuscado = codigo.trim();
+
+        for (int i = 0; i < clientes.size(); i++) {
+            Cliente cliente = clientes.get(i);
+            if (cliente.getIdEntidad() != idExcluir
+                    && cliente.getCodigoCliente().trim().equalsIgnoreCase(codigoBuscado)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void agregar(Cliente cliente) throws Exception {

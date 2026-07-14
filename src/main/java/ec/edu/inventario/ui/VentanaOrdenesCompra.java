@@ -32,7 +32,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class VentanaOrdenesCompra extends JFrame {
 
-    private JTextField txtNumero;
+    private String numeroOrdenSeleccionada = null;
     private JComboBox<Proveedor> cmbProveedor;
     private JComboBox<Producto> cmbProducto;
     private JTextField txtCantidad;
@@ -65,14 +65,11 @@ public class VentanaOrdenesCompra extends JFrame {
     }
 
     private void iniciarComponentes() {
-        txtNumero = new JTextField();
         cmbProveedor = new JComboBox<>();
         cmbProducto = new JComboBox<>();
         txtCantidad = new JTextField();
 
-        JPanel panelFormulario = new JPanel(new GridLayout(4, 2, 5, 5));
-        panelFormulario.add(new JLabel("Numero orden:"));
-        panelFormulario.add(txtNumero);
+        JPanel panelFormulario = new JPanel(new GridLayout(3, 2, 5, 5));
         panelFormulario.add(new JLabel("Proveedor:"));
         panelFormulario.add(cmbProveedor);
         panelFormulario.add(new JLabel("Producto:"));
@@ -182,6 +179,9 @@ public class VentanaOrdenesCompra extends JFrame {
                 OrdenCompra orden = ordenes.get(i);
                 if (orden.getDetalles().size() > 0) {
                     DetalleOrdenCompra detalle = orden.getDetalles().get(0);
+                    String precioFormateado = String.format("%.2f", detalle.getPrecioUnitario());
+                    String totalFormateado = String.format("%.2f", orden.getTotal());
+
                     modeloTabla.addRow(new Object[]{
                             orden.getNumeroOrden(),
                             orden.getProveedor().getIdEntidad(),
@@ -189,8 +189,8 @@ public class VentanaOrdenesCompra extends JFrame {
                             detalle.getProducto().getIdProducto(),
                             detalle.getProducto().getNombre(),
                             detalle.getCantidad(),
-                            detalle.getPrecioUnitario(),
-                            orden.getTotal(),
+                            precioFormateado,
+                            totalFormateado,
                             orden.getEstado(),
                             orden.getFecha()
                     });
@@ -211,7 +211,8 @@ public class VentanaOrdenesCompra extends JFrame {
         }
 
         try {
-            OrdenCompra orden = crearOrdenDesdeCampos();
+            String numero = ordenCompraCSV.generarNumero();
+            OrdenCompra orden = crearOrdenDesdeCampos(numero);
             DetalleOrdenCompra detalle = orden.getDetalles().get(0);
 
             ordenCompraCSV.agregar(orden, proveedores, productos);
@@ -233,19 +234,22 @@ public class VentanaOrdenesCompra extends JFrame {
     }
 
     private void editarOrden() {
+        if (numeroOrdenSeleccionada == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione una orden de compra para editar.");
+            return;
+        }
         if (!validarCampos()) {
             return;
         }
 
         try {
-            String numero = txtNumero.getText().trim();
-            OrdenCompra ordenAnterior = ordenCompraCSV.buscarPorNumero(numero, proveedores, productos);
+            OrdenCompra ordenAnterior = ordenCompraCSV.buscarPorNumero(numeroOrdenSeleccionada, proveedores, productos);
             if (ordenAnterior == null || ordenAnterior.getDetalles().size() == 0) {
                 JOptionPane.showMessageDialog(this, "No se encontro la orden.");
                 return;
             }
 
-            OrdenCompra ordenNueva = crearOrdenDesdeCampos();
+            OrdenCompra ordenNueva = crearOrdenDesdeCampos(numeroOrdenSeleccionada);
             DetalleOrdenCompra detalleAnterior = ordenAnterior.getDetalles().get(0);
             DetalleOrdenCompra detalleNuevo = ordenNueva.getDetalles().get(0);
 
@@ -268,8 +272,8 @@ public class VentanaOrdenesCompra extends JFrame {
     }
 
     private void eliminarOrden() {
-        if (Validaciones.estaVacio(txtNumero.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese el numero de la orden.");
+        if (numeroOrdenSeleccionada == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione una orden de compra para eliminar.");
             return;
         }
 
@@ -279,8 +283,7 @@ public class VentanaOrdenesCompra extends JFrame {
         }
 
         try {
-            String numero = txtNumero.getText().trim();
-            OrdenCompra orden = ordenCompraCSV.buscarPorNumero(numero, proveedores, productos);
+            OrdenCompra orden = ordenCompraCSV.buscarPorNumero(numeroOrdenSeleccionada, proveedores, productos);
             if (orden == null || orden.getDetalles().size() == 0) {
                 JOptionPane.showMessageDialog(this, "No se encontro la orden.");
                 return;
@@ -288,7 +291,7 @@ public class VentanaOrdenesCompra extends JFrame {
 
             DetalleOrdenCompra detalle = orden.getDetalles().get(0);
             inventarioCSV.disminuirStock(detalle.getProducto().getIdProducto(), detalle.getCantidad(), productos);
-            ordenCompraCSV.eliminar(numero, proveedores, productos);
+            ordenCompraCSV.eliminar(numeroOrdenSeleccionada, proveedores, productos);
 
             JOptionPane.showMessageDialog(this, "Orden eliminada correctamente.");
             cargarCombos();
@@ -306,13 +309,17 @@ public class VentanaOrdenesCompra extends JFrame {
     }
 
     private void buscarOrden() {
-        if (Validaciones.estaVacio(txtNumero.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese el numero de la orden.");
+        String textoNumero = JOptionPane.showInputDialog(this, "Ingrese el numero de la orden:");
+        if (textoNumero == null) {
+            return;
+        }
+        if (!Validaciones.esEnteroPositivo(textoNumero)) {
+            JOptionPane.showMessageDialog(this, "El numero de la orden debe ser un entero mayor que cero.");
             return;
         }
 
         try {
-            OrdenCompra orden = ordenCompraCSV.buscarPorNumero(txtNumero.getText().trim(), proveedores, productos);
+            OrdenCompra orden = ordenCompraCSV.buscarPorNumero(textoNumero.trim(), proveedores, productos);
             if (orden == null) {
                 JOptionPane.showMessageDialog(this, "No se encontro la orden.");
             } else {
@@ -327,8 +334,7 @@ public class VentanaOrdenesCompra extends JFrame {
         }
     }
 
-    private OrdenCompra crearOrdenDesdeCampos() {
-        String numero = txtNumero.getText().trim();
+    private OrdenCompra crearOrdenDesdeCampos(String numero) {
         Proveedor proveedor = (Proveedor) cmbProveedor.getSelectedItem();
         Producto producto = (Producto) cmbProducto.getSelectedItem();
         int cantidad = Integer.parseInt(txtCantidad.getText().trim());
@@ -366,13 +372,12 @@ public class VentanaOrdenesCompra extends JFrame {
             JOptionPane.showMessageDialog(this, "Debe seleccionar un producto.");
             return false;
         }
-        if (Validaciones.estaVacio(txtNumero.getText())
-                || Validaciones.estaVacio(txtCantidad.getText())) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.");
+        if (Validaciones.estaVacio(txtCantidad.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese la cantidad.");
             return false;
         }
         if (!Validaciones.esEnteroPositivo(txtCantidad.getText())) {
-            JOptionPane.showMessageDialog(this, "La cantidad debe ser mayor a cero.");
+            JOptionPane.showMessageDialog(this, "La cantidad debe ser un entero mayor que cero.");
             return false;
         }
         return true;
@@ -381,7 +386,7 @@ public class VentanaOrdenesCompra extends JFrame {
     private void seleccionarFila() {
         int fila = tabla.getSelectedRow();
         if (fila >= 0) {
-            txtNumero.setText(modeloTabla.getValueAt(fila, 0).toString());
+            numeroOrdenSeleccionada = modeloTabla.getValueAt(fila, 0).toString();
             seleccionarProveedorPorId(Integer.parseInt(modeloTabla.getValueAt(fila, 1).toString()));
             seleccionarProductoPorId(Integer.parseInt(modeloTabla.getValueAt(fila, 3).toString()));
             txtCantidad.setText(modeloTabla.getValueAt(fila, 5).toString());
@@ -409,7 +414,7 @@ public class VentanaOrdenesCompra extends JFrame {
     }
 
     private void mostrarOrden(OrdenCompra orden) {
-        txtNumero.setText(orden.getNumeroOrden());
+        numeroOrdenSeleccionada = orden.getNumeroOrden();
         seleccionarProveedorPorId(orden.getProveedor().getIdEntidad());
         if (orden.getDetalles().size() > 0) {
             DetalleOrdenCompra detalle = orden.getDetalles().get(0);
@@ -419,7 +424,6 @@ public class VentanaOrdenesCompra extends JFrame {
     }
 
     private void limpiarCampos() {
-        txtNumero.setText("");
         txtCantidad.setText("");
         if (cmbProveedor.getItemCount() > 0) {
             cmbProveedor.setSelectedIndex(0);
@@ -428,5 +432,6 @@ public class VentanaOrdenesCompra extends JFrame {
             cmbProducto.setSelectedIndex(0);
         }
         tabla.clearSelection();
+        numeroOrdenSeleccionada = null;
     }
 }

@@ -1,10 +1,11 @@
 package ec.edu.inventario.persistencia;
 
-import ec.edu.inventario.modelo.Producto;
-import ec.edu.inventario.util.ArchivoUtil;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import ec.edu.inventario.modelo.Producto;
+import ec.edu.inventario.util.ArchivoUtil;
 
 public class ProductoCSV {
 
@@ -35,9 +36,9 @@ public class ProductoCSV {
         ArrayList<String> lineas = new ArrayList<>();
         for (int i = 0; i < productos.size(); i++) {
             Producto producto = productos.get(i);
-            lineas.add(producto.getIdProducto() + ";"
-                    + ArchivoUtil.limpiarTexto(producto.getNombre()) + ";"
-                    + producto.getPrecioCompra() + ";"
+            lineas.add(producto.getIdProducto() + ","
+                    + ArchivoUtil.limpiarTexto(producto.getNombre()) + ","
+                    + producto.getPrecioCompra() + ","
                     + producto.getPrecioVenta());
         }
         ArchivoUtil.escribirLineas(ARCHIVO, lineas);
@@ -56,6 +57,32 @@ public class ProductoCSV {
 
     public boolean existeId(int idProducto) throws FileNotFoundException, IOException {
         return buscarPorId(idProducto) != null;
+    }
+
+    public int generarId() throws FileNotFoundException, IOException {
+        ArrayList<Producto> productos = listar();
+        int mayor = 0;
+
+        for (int i = 0; i < productos.size(); i++) {
+            if (productos.get(i).getIdProducto() > mayor) {
+                mayor = productos.get(i).getIdProducto();
+            }
+        }
+        return mayor + 1;
+    }
+
+    public boolean existeNombre(String nombre, int idExcluir) throws FileNotFoundException, IOException {
+        ArrayList<Producto> productos = listar();
+        String nombreBuscado = nombre.trim();
+
+        for (int i = 0; i < productos.size(); i++) {
+            Producto producto = productos.get(i);
+            if (producto.getIdProducto() != idExcluir
+                    && producto.getNombre().trim().equalsIgnoreCase(nombreBuscado)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void agregar(Producto producto) throws Exception {

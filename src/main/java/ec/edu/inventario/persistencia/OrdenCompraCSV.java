@@ -1,14 +1,15 @@
 package ec.edu.inventario.persistencia;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+
 import ec.edu.inventario.modelo.DetalleOrdenCompra;
 import ec.edu.inventario.modelo.OrdenCompra;
 import ec.edu.inventario.modelo.Producto;
 import ec.edu.inventario.modelo.Proveedor;
 import ec.edu.inventario.util.ArchivoUtil;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
 
 public class OrdenCompraCSV {
 
@@ -58,13 +59,13 @@ public class OrdenCompraCSV {
                     fecha = orden.getFecha().toString();
                 }
 
-                lineas.add(ArchivoUtil.limpiarTexto(orden.getNumeroOrden()) + ";"
-                        + orden.getProveedor().getIdEntidad() + ";"
-                        + detalle.getProducto().getIdProducto() + ";"
-                        + detalle.getCantidad() + ";"
-                        + detalle.getPrecioUnitario() + ";"
-                        + orden.getTotal() + ";"
-                        + ArchivoUtil.limpiarTexto(orden.getEstado()) + ";"
+                lineas.add(ArchivoUtil.limpiarTexto(orden.getNumeroOrden()) + ","
+                        + orden.getProveedor().getIdEntidad() + ","
+                        + detalle.getProducto().getIdProducto() + ","
+                        + detalle.getCantidad() + ","
+                        + detalle.getPrecioUnitario() + ","
+                        + orden.getTotal() + ","
+                        + ArchivoUtil.limpiarTexto(orden.getEstado()) + ","
                         + fecha);
             }
         }
@@ -83,6 +84,24 @@ public class OrdenCompraCSV {
 
     public boolean existeNumero(String numero, ArrayList<Proveedor> proveedores, ArrayList<Producto> productos) throws FileNotFoundException, IOException {
         return buscarPorNumero(numero, proveedores, productos) != null;
+    }
+
+    public String generarNumero() throws FileNotFoundException, IOException {
+        ArrayList<String> lineas = ArchivoUtil.leerLineas(ARCHIVO);
+        int mayor = 0;
+
+        for (int i = 0; i < lineas.size(); i++) {
+            try {
+                String[] datos = ArchivoUtil.separar(lineas.get(i));
+                int numero = Integer.parseInt(datos[0].trim());
+                if (numero > mayor) {
+                    mayor = numero;
+                }
+            } catch (Exception e) {
+                // Se omiten encabezados o numeros incorrectos.
+            }
+        }
+        return String.valueOf(mayor + 1);
     }
 
     public void agregar(OrdenCompra orden, ArrayList<Proveedor> proveedores, ArrayList<Producto> productos) throws Exception {

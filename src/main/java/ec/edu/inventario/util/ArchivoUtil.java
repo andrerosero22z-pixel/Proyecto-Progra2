@@ -69,10 +69,10 @@ public class ArchivoUtil {
         if (texto == null) {
             return "";
         }
-        return texto.trim().replace(";", " ").replace("\n", " ").replace("\r", " ");
+        return texto.trim().replace(",", " ").replace("\n", " ").replace("\r", " ");
     }
 
     public static String[] separar(String linea) {
-        return linea.split(";", -1);
+        return linea.split(",", -1);
     }
 }

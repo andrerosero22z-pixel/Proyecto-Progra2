@@ -1,14 +1,15 @@
 package ec.edu.inventario.persistencia;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+
 import ec.edu.inventario.modelo.Cliente;
 import ec.edu.inventario.modelo.DetallePedido;
 import ec.edu.inventario.modelo.Pedido;
 import ec.edu.inventario.modelo.Producto;
 import ec.edu.inventario.util.ArchivoUtil;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
 
 public class PedidoCSV {
 
@@ -59,14 +60,14 @@ public class PedidoCSV {
                     fecha = pedido.getFecha().toString();
                 }
 
-                lineas.add(ArchivoUtil.limpiarTexto(pedido.getNumeroPedido()) + ";"
-                        + pedido.getCliente().getIdEntidad() + ";"
-                        + detalle.getProducto().getIdProducto() + ";"
-                        + detalle.getCantidad() + ";"
-                        + detalle.getPrecioUnitario() + ";"
-                        + detalle.getDescuento() + ";"
-                        + pedido.getTotal() + ";"
-                        + ArchivoUtil.limpiarTexto(pedido.getEstado()) + ";"
+                lineas.add(ArchivoUtil.limpiarTexto(pedido.getNumeroPedido()) + ","
+                        + pedido.getCliente().getIdEntidad() + ","
+                        + detalle.getProducto().getIdProducto() + ","
+                        + detalle.getCantidad() + ","
+                        + detalle.getPrecioUnitario() + ","
+                        + detalle.getDescuento() + ","
+                        + pedido.getTotal() + ","
+                        + ArchivoUtil.limpiarTexto(pedido.getEstado()) + ","
                         + fecha);
             }
         }
@@ -85,6 +86,24 @@ public class PedidoCSV {
 
     public boolean existeNumero(String numero, ArrayList<Cliente> clientes, ArrayList<Producto> productos) throws FileNotFoundException, IOException {
         return buscarPorNumero(numero, clientes, productos) != null;
+    }
+
+    public String generarNumero() throws FileNotFoundException, IOException {
+        ArrayList<String> lineas = ArchivoUtil.leerLineas(ARCHIVO);
+        int mayor = 0;
+
+        for (int i = 0; i < lineas.size(); i++) {
+            try {
+                String[] datos = ArchivoUtil.separar(lineas.get(i));
+                int numero = Integer.parseInt(datos[0].trim());
+                if (numero > mayor) {
+                    mayor = numero;
+                }
+            } catch (Exception e) {
+                // Se omiten encabezados o numeros incorrectos.
+            }
+        }
+        return String.valueOf(mayor + 1);
     }
 
     public void agregar(Pedido pedido, ArrayList<Cliente> clientes, ArrayList<Producto> productos) throws Exception {

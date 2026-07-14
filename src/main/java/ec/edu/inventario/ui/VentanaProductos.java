@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class VentanaProductos extends JFrame {
 
-    private JTextField txtId;
+    private Integer idProductoSeleccionado = null;
     private JTextField txtNombre;
     private JTextField txtPrecioCompra;
     private JTextField txtPrecioVenta;
@@ -48,14 +48,11 @@ public class VentanaProductos extends JFrame {
     }
 
     private void iniciarComponentes() {
-        txtId = new JTextField();
         txtNombre = new JTextField();
         txtPrecioCompra = new JTextField();
         txtPrecioVenta = new JTextField();
 
-        JPanel panelFormulario = new JPanel(new GridLayout(4, 2, 5, 5));
-        panelFormulario.add(new JLabel("ID:"));
-        panelFormulario.add(txtId);
+        JPanel panelFormulario = new JPanel(new GridLayout(3, 2, 5, 5));
         panelFormulario.add(new JLabel("Nombre:"));
         panelFormulario.add(txtNombre);
         panelFormulario.add(new JLabel("Precio compra:"));
@@ -151,12 +148,12 @@ public class VentanaProductos extends JFrame {
     }
 
     private void agregarProducto() {
-        if (!validarCampos()) {
+        if (!validarCampos(-1)) {
             return;
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
+            int id = productoCSV.generarId();
             String nombre = txtNombre.getText().trim();
             double precioCompra = Double.parseDouble(txtPrecioCompra.getText().trim());
             double precioVenta = Double.parseDouble(txtPrecioVenta.getText().trim());
@@ -182,12 +179,16 @@ public class VentanaProductos extends JFrame {
     }
 
     private void editarProducto() {
-        if (!validarCampos()) {
+        if (idProductoSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto para editar.");
+            return;
+        }
+        if (!validarCampos(idProductoSeleccionado)) {
             return;
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
+            int id = idProductoSeleccionado;
             String nombre = txtNombre.getText().trim();
             double precioCompra = Double.parseDouble(txtPrecioCompra.getText().trim());
             double precioVenta = Double.parseDouble(txtPrecioVenta.getText().trim());
@@ -209,8 +210,8 @@ public class VentanaProductos extends JFrame {
     }
 
     private void eliminarProducto() {
-        if (Validaciones.estaVacio(txtId.getText()) || !Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para eliminar.");
+        if (idProductoSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un producto para eliminar.");
             return;
         }
 
@@ -220,7 +221,7 @@ public class VentanaProductos extends JFrame {
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
+            int id = idProductoSeleccionado;
             ArrayList<Producto> productos = productoCSV.listar();
             inventarioCSV.eliminarPorProducto(id, productos);
             productoCSV.eliminar(id);
@@ -240,13 +241,17 @@ public class VentanaProductos extends JFrame {
     }
 
     private void buscarProducto() {
-        if (Validaciones.estaVacio(txtId.getText()) || !Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese un ID valido para buscar.");
+        String textoId = JOptionPane.showInputDialog(this, "Ingrese el ID del producto:");
+        if (textoId == null) {
+            return;
+        }
+        if (!Validaciones.esEnteroPositivo(textoId)) {
+            JOptionPane.showMessageDialog(this, "El ID debe ser un entero mayor que cero.");
             return;
         }
 
         try {
-            int id = Integer.parseInt(txtId.getText().trim());
+            int id = Integer.parseInt(textoId.trim());
             Producto producto = productoCSV.buscarPorId(id);
 
             if (producto == null) {
@@ -265,24 +270,39 @@ public class VentanaProductos extends JFrame {
         }
     }
 
-    private boolean validarCampos() {
-        if (Validaciones.estaVacio(txtId.getText())
-                || Validaciones.estaVacio(txtNombre.getText())
-                || Validaciones.estaVacio(txtPrecioCompra.getText())
-                || Validaciones.estaVacio(txtPrecioVenta.getText())) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.");
+    private boolean validarCampos(int idExcluir) {
+        if (Validaciones.estaVacio(txtNombre.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el nombre del producto.");
             return false;
         }
-        if (!Validaciones.esEntero(txtId.getText())) {
-            JOptionPane.showMessageDialog(this, "El ID debe ser numerico.");
+        if (!Validaciones.esTextoValido(txtNombre.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese un nombre de producto valido.");
             return false;
         }
-        if (!Validaciones.esDecimalNoNegativo(txtPrecioCompra.getText())) {
-            JOptionPane.showMessageDialog(this, "El precio de compra no puede ser negativo.");
+        if (Validaciones.estaVacio(txtPrecioCompra.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el precio de compra.");
             return false;
         }
-        if (!Validaciones.esDecimalNoNegativo(txtPrecioVenta.getText())) {
-            JOptionPane.showMessageDialog(this, "El precio de venta no puede ser negativo.");
+        if (!Validaciones.esDecimalPositivo(txtPrecioCompra.getText())) {
+            JOptionPane.showMessageDialog(this, "El precio de compra debe ser mayor que cero.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtPrecioVenta.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el precio de venta.");
+            return false;
+        }
+        if (!Validaciones.esDecimalPositivo(txtPrecioVenta.getText())) {
+            JOptionPane.showMessageDialog(this, "El precio de venta debe ser mayor que cero.");
+            return false;
+        }
+
+        try {
+            if (productoCSV.existeNombre(txtNombre.getText(), idExcluir)) {
+                JOptionPane.showMessageDialog(this, "Ya existe un producto con ese nombre.");
+                return false;
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo validar el nombre del producto.");
             return false;
         }
         return true;
@@ -291,7 +311,7 @@ public class VentanaProductos extends JFrame {
     private void seleccionarFila() {
         int fila = tabla.getSelectedRow();
         if (fila >= 0) {
-            txtId.setText(modeloTabla.getValueAt(fila, 0).toString());
+            idProductoSeleccionado = Integer.parseInt(modeloTabla.getValueAt(fila, 0).toString());
             txtNombre.setText(modeloTabla.getValueAt(fila, 1).toString());
             txtPrecioCompra.setText(modeloTabla.getValueAt(fila, 2).toString());
             txtPrecioVenta.setText(modeloTabla.getValueAt(fila, 3).toString());
@@ -299,17 +319,17 @@ public class VentanaProductos extends JFrame {
     }
 
     private void mostrarProducto(Producto producto) {
-        txtId.setText(String.valueOf(producto.getIdProducto()));
+        idProductoSeleccionado = producto.getIdProducto();
         txtNombre.setText(producto.getNombre());
         txtPrecioCompra.setText(String.valueOf(producto.getPrecioCompra()));
         txtPrecioVenta.setText(String.valueOf(producto.getPrecioVenta()));
     }
 
     private void limpiarCampos() {
-        txtId.setText("");
         txtNombre.setText("");
         txtPrecioCompra.setText("");
         txtPrecioVenta.setText("");
         tabla.clearSelection();
+        idProductoSeleccionado = null;
     }
 }

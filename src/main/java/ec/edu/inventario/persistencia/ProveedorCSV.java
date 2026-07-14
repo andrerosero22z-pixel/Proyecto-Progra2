@@ -1,10 +1,11 @@
 package ec.edu.inventario.persistencia;
 
-import ec.edu.inventario.modelo.Proveedor;
-import ec.edu.inventario.util.ArchivoUtil;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import ec.edu.inventario.modelo.Proveedor;
+import ec.edu.inventario.util.ArchivoUtil;
 
 public class ProveedorCSV {
 
@@ -32,11 +33,11 @@ public class ProveedorCSV {
         ArrayList<String> lineas = new ArrayList<>();
         for (int i = 0; i < proveedores.size(); i++) {
             Proveedor proveedor = proveedores.get(i);
-            lineas.add(proveedor.getIdEntidad() + ";"
-                    + ArchivoUtil.limpiarTexto(proveedor.getRuc()) + ";"
-                    + ArchivoUtil.limpiarTexto(proveedor.getNombreEmpresa()) + ";"
-                    + ArchivoUtil.limpiarTexto(proveedor.getTelefono()) + ";"
-                    + ArchivoUtil.limpiarTexto(proveedor.getCorreo()) + ";"
+            lineas.add(proveedor.getIdEntidad() + ","
+                    + ArchivoUtil.limpiarTexto(proveedor.getRuc()) + ","
+                    + ArchivoUtil.limpiarTexto(proveedor.getNombreEmpresa()) + ","
+                    + ArchivoUtil.limpiarTexto(proveedor.getTelefono()) + ","
+                    + ArchivoUtil.limpiarTexto(proveedor.getCorreo()) + ","
                     + ArchivoUtil.limpiarTexto(proveedor.getDireccion()));
         }
         ArchivoUtil.escribirLineas(ARCHIVO, lineas);
@@ -55,6 +56,32 @@ public class ProveedorCSV {
 
     public boolean existeId(int idProveedor) throws FileNotFoundException, IOException {
         return buscarPorId(idProveedor) != null;
+    }
+
+    public int generarId() throws FileNotFoundException, IOException {
+        ArrayList<Proveedor> proveedores = listar();
+        int mayor = 0;
+
+        for (int i = 0; i < proveedores.size(); i++) {
+            if (proveedores.get(i).getIdEntidad() > mayor) {
+                mayor = proveedores.get(i).getIdEntidad();
+            }
+        }
+        return mayor + 1;
+    }
+
+    public boolean existeRuc(String ruc, int idExcluir) throws FileNotFoundException, IOException {
+        ArrayList<Proveedor> proveedores = listar();
+        String rucBuscado = ruc.trim();
+
+        for (int i = 0; i < proveedores.size(); i++) {
+            Proveedor proveedor = proveedores.get(i);
+            if (proveedor.getIdEntidad() != idExcluir
+                    && proveedor.getRuc().trim().equals(rucBuscado)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void agregar(Proveedor proveedor) throws Exception {

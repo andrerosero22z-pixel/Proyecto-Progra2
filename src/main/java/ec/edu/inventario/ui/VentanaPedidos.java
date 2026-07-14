@@ -2,6 +2,7 @@ package ec.edu.inventario.ui;
 
 import ec.edu.inventario.modelo.Cliente;
 import ec.edu.inventario.modelo.DetallePedido;
+import ec.edu.inventario.modelo.ItemInventario;
 import ec.edu.inventario.modelo.Pedido;
 import ec.edu.inventario.modelo.Producto;
 import ec.edu.inventario.persistencia.ClienteCSV;
@@ -32,7 +33,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class VentanaPedidos extends JFrame {
 
-    private JTextField txtNumero;
+    private String numeroPedidoSeleccionado = null;
     private JComboBox<Cliente> cmbCliente;
     private JComboBox<Producto> cmbProducto;
     private JTextField txtCantidad;
@@ -66,15 +67,12 @@ public class VentanaPedidos extends JFrame {
     }
 
     private void iniciarComponentes() {
-        txtNumero = new JTextField();
         cmbCliente = new JComboBox<>();
         cmbProducto = new JComboBox<>();
         txtCantidad = new JTextField();
         txtDescuento = new JTextField("0");
 
-        JPanel panelFormulario = new JPanel(new GridLayout(5, 2, 5, 5));
-        panelFormulario.add(new JLabel("Numero pedido:"));
-        panelFormulario.add(txtNumero);
+        JPanel panelFormulario = new JPanel(new GridLayout(4, 2, 5, 5));
         panelFormulario.add(new JLabel("Cliente:"));
         panelFormulario.add(cmbCliente);
         panelFormulario.add(new JLabel("Producto:"));
@@ -186,6 +184,10 @@ public class VentanaPedidos extends JFrame {
                 Pedido pedido = pedidos.get(i);
                 if (pedido.getDetalles().size() > 0) {
                     DetallePedido detalle = pedido.getDetalles().get(0);
+                    String precioFormateado = String.format("%.2f", detalle.getPrecioUnitario());
+                    String descuentoFormateado = String.format("%.2f", detalle.getDescuento());
+                    String totalFormateado = String.format("%.2f", pedido.getTotal());
+
                     modeloTabla.addRow(new Object[]{
                             pedido.getNumeroPedido(),
                             pedido.getCliente().getIdEntidad(),
@@ -193,9 +195,9 @@ public class VentanaPedidos extends JFrame {
                             detalle.getProducto().getIdProducto(),
                             detalle.getProducto().getNombre(),
                             detalle.getCantidad(),
-                            detalle.getPrecioUnitario(),
-                            detalle.getDescuento(),
-                            pedido.getTotal(),
+                            precioFormateado,
+                            descuentoFormateado,
+                            totalFormateado,
                             pedido.getEstado(),
                             pedido.getFecha()
                     });
@@ -216,7 +218,8 @@ public class VentanaPedidos extends JFrame {
         }
 
         try {
-            Pedido pedido = crearPedidoDesdeCampos();
+            String numero = pedidoCSV.generarNumero();
+            Pedido pedido = crearPedidoDesdeCampos(numero);
             DetallePedido detalle = pedido.getDetalles().get(0);
             int idProducto = detalle.getProducto().getIdProducto();
             int stockDisponible = inventarioCSV.obtenerStock(idProducto, productos);
@@ -230,6 +233,7 @@ public class VentanaPedidos extends JFrame {
             inventarioCSV.disminuirStock(idProducto, detalle.getCantidad(), productos);
 
             JOptionPane.showMessageDialog(this, "Pedido registrado correctamente.");
+            verificarStockMinimo(detalle.getProducto());
             cargarCombos();
             cargarTabla();
             limpiarCampos();
@@ -245,19 +249,22 @@ public class VentanaPedidos extends JFrame {
     }
 
     private void editarPedido() {
+        if (numeroPedidoSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un pedido para editar.");
+            return;
+        }
         if (!validarCampos()) {
             return;
         }
 
         try {
-            String numero = txtNumero.getText().trim();
-            Pedido pedidoAnterior = pedidoCSV.buscarPorNumero(numero, clientes, productos);
+            Pedido pedidoAnterior = pedidoCSV.buscarPorNumero(numeroPedidoSeleccionado, clientes, productos);
             if (pedidoAnterior == null || pedidoAnterior.getDetalles().size() == 0) {
                 JOptionPane.showMessageDialog(this, "No se encontro el pedido.");
                 return;
             }
 
-            Pedido pedidoNuevo = crearPedidoDesdeCampos();
+            Pedido pedidoNuevo = crearPedidoDesdeCampos(numeroPedidoSeleccionado);
             DetallePedido detalleAnterior = pedidoAnterior.getDetalles().get(0);
             DetallePedido detalleNuevo = pedidoNuevo.getDetalles().get(0);
 
@@ -293,8 +300,8 @@ public class VentanaPedidos extends JFrame {
     }
 
     private void eliminarPedido() {
-        if (Validaciones.estaVacio(txtNumero.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese el numero del pedido.");
+        if (numeroPedidoSeleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un pedido para eliminar.");
             return;
         }
 
@@ -304,8 +311,7 @@ public class VentanaPedidos extends JFrame {
         }
 
         try {
-            String numero = txtNumero.getText().trim();
-            Pedido pedido = pedidoCSV.buscarPorNumero(numero, clientes, productos);
+            Pedido pedido = pedidoCSV.buscarPorNumero(numeroPedidoSeleccionado, clientes, productos);
             if (pedido == null || pedido.getDetalles().size() == 0) {
                 JOptionPane.showMessageDialog(this, "No se encontro el pedido.");
                 return;
@@ -313,7 +319,7 @@ public class VentanaPedidos extends JFrame {
 
             DetallePedido detalle = pedido.getDetalles().get(0);
             inventarioCSV.aumentarStock(detalle.getProducto().getIdProducto(), detalle.getCantidad(), productos);
-            pedidoCSV.eliminar(numero, clientes, productos);
+            pedidoCSV.eliminar(numeroPedidoSeleccionado, clientes, productos);
 
             JOptionPane.showMessageDialog(this, "Pedido eliminado correctamente.");
             cargarCombos();
@@ -331,13 +337,17 @@ public class VentanaPedidos extends JFrame {
     }
 
     private void buscarPedido() {
-        if (Validaciones.estaVacio(txtNumero.getText())) {
-            JOptionPane.showMessageDialog(this, "Ingrese el numero del pedido.");
+        String textoNumero = JOptionPane.showInputDialog(this, "Ingrese el numero del pedido:");
+        if (textoNumero == null) {
+            return;
+        }
+        if (!Validaciones.esEnteroPositivo(textoNumero)) {
+            JOptionPane.showMessageDialog(this, "El numero del pedido debe ser un entero mayor que cero.");
             return;
         }
 
         try {
-            Pedido pedido = pedidoCSV.buscarPorNumero(txtNumero.getText().trim(), clientes, productos);
+            Pedido pedido = pedidoCSV.buscarPorNumero(textoNumero.trim(), clientes, productos);
             if (pedido == null) {
                 JOptionPane.showMessageDialog(this, "No se encontro el pedido.");
             } else {
@@ -352,8 +362,7 @@ public class VentanaPedidos extends JFrame {
         }
     }
 
-    private Pedido crearPedidoDesdeCampos() {
-        String numero = txtNumero.getText().trim();
+    private Pedido crearPedidoDesdeCampos(String numero) {
         Cliente cliente = (Cliente) cmbCliente.getSelectedItem();
         Producto producto = (Producto) cmbProducto.getSelectedItem();
         int cantidad = Integer.parseInt(txtCantidad.getText().trim());
@@ -392,18 +401,20 @@ public class VentanaPedidos extends JFrame {
             JOptionPane.showMessageDialog(this, "Debe seleccionar un producto.");
             return false;
         }
-        if (Validaciones.estaVacio(txtNumero.getText())
-                || Validaciones.estaVacio(txtCantidad.getText())
-                || Validaciones.estaVacio(txtDescuento.getText())) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.");
+        if (Validaciones.estaVacio(txtCantidad.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese la cantidad.");
             return false;
         }
         if (!Validaciones.esEnteroPositivo(txtCantidad.getText())) {
-            JOptionPane.showMessageDialog(this, "La cantidad debe ser mayor a cero.");
+            JOptionPane.showMessageDialog(this, "La cantidad debe ser un entero mayor que cero.");
+            return false;
+        }
+        if (Validaciones.estaVacio(txtDescuento.getText())) {
+            JOptionPane.showMessageDialog(this, "Ingrese el descuento.");
             return false;
         }
         if (!Validaciones.esDecimalNoNegativo(txtDescuento.getText())) {
-            JOptionPane.showMessageDialog(this, "El descuento no puede ser negativo.");
+            JOptionPane.showMessageDialog(this, "El descuento debe ser un numero no negativo.");
             return false;
         }
 
@@ -422,7 +433,7 @@ public class VentanaPedidos extends JFrame {
     private void seleccionarFila() {
         int fila = tabla.getSelectedRow();
         if (fila >= 0) {
-            txtNumero.setText(modeloTabla.getValueAt(fila, 0).toString());
+            numeroPedidoSeleccionado = modeloTabla.getValueAt(fila, 0).toString();
             seleccionarClientePorId(Integer.parseInt(modeloTabla.getValueAt(fila, 1).toString()));
             seleccionarProductoPorId(Integer.parseInt(modeloTabla.getValueAt(fila, 3).toString()));
             txtCantidad.setText(modeloTabla.getValueAt(fila, 5).toString());
@@ -451,7 +462,7 @@ public class VentanaPedidos extends JFrame {
     }
 
     private void mostrarPedido(Pedido pedido) {
-        txtNumero.setText(pedido.getNumeroPedido());
+        numeroPedidoSeleccionado = pedido.getNumeroPedido();
         seleccionarClientePorId(pedido.getCliente().getIdEntidad());
         if (pedido.getDetalles().size() > 0) {
             DetallePedido detalle = pedido.getDetalles().get(0);
@@ -461,8 +472,25 @@ public class VentanaPedidos extends JFrame {
         }
     }
 
+    private void verificarStockMinimo(Producto producto) {
+        try {
+            ItemInventario item = inventarioCSV.buscarPorProducto(producto.getIdProducto(), productos);
+            if (item != null && item.getStockActual() <= item.getStockMinimo()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Advertencia: el producto " + producto.getNombre()
+                                + " quedó con un stock de " + item.getStockActual() + " unidades.\n"
+                                + "El stock mínimo es " + item.getStockMinimo() + ".\n"
+                                + "Realice una orden de compra para reabastecer el producto.",
+                        "Stock bajo",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo verificar el stock mínimo del producto.");
+        }
+    }
+
     private void limpiarCampos() {
-        txtNumero.setText("");
         txtCantidad.setText("");
         txtDescuento.setText("0");
         if (cmbCliente.getItemCount() > 0) {
@@ -472,5 +500,6 @@ public class VentanaPedidos extends JFrame {
             cmbProducto.setSelectedIndex(0);
         }
         tabla.clearSelection();
+        numeroPedidoSeleccionado = null;
     }
 }
